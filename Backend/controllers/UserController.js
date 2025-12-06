@@ -31,12 +31,9 @@ export const register = async (req, res, next) => {
 };
 
 export const loginStepOne = async (req, res, next) => {
-  console.log(req.body);
   try {
     const { email, password } = req.body;
     const user = await userService.loginVerifyCredentials({ email, password });
-
-    console.log("User email:", user.email);
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     await otpService.saveOtp(user.email, otp);

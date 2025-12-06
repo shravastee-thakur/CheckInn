@@ -16,11 +16,8 @@ export const register = async ({ username, email, password }) => {
 };
 
 export const loginVerifyCredentials = async ({ email, password }) => {
-  console.log("Attempting to find user with email:", email);
   const user = await userRepo.findByEmail(email).select("email password");
   if (!user) throw new ApiError(401, "Invalid credentials");
-
-  console.log("User found:", user);
 
   const match = await user.comparePassword(password);
   if (!match) throw new ApiError(401, "Invalid credentials");

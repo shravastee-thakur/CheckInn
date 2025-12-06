@@ -5,6 +5,7 @@ import { sanitizeMiddleware } from "./middleware/sanitize.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 
 import userRoutes from "./routes/userRoutes.js";
+import hotelRoutes from "./routes/hotelRoutes.js";
 
 const app = express();
 
@@ -20,8 +21,11 @@ app.use(cookieParser());
 app.use(sanitizeMiddleware);
 
 // Routes
-app.use("/api/v1/users", userRoutes);
-// http://localhost:3000/api/v1/users/register
+app.use("/api/v1/user", userRoutes);
+// http://localhost:3000/api/v1/user/register
+
+app.use("/api/v1/hotel", hotelRoutes);
+// http://localhost:3000/api/v1/hotel/createHotel
 
 app.use(errorHandler);
 export default app;
