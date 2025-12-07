@@ -1,8 +1,8 @@
 import Hotel from "../models/HotelModel.js";
 
-export const createHotel = async (data) => Hotel.create(data);
+export const createHotel = async (data) => await Hotel.create(data);
 
-export const findHotelById = async (id) => Hotel.findById(id);
+export const findHotelById = async (id) => await Hotel.findById(id);
 
 export const findAllHotels = async (filters) => {
   const { city, type, maxPrice } = filters;
@@ -12,7 +12,7 @@ export const findAllHotels = async (filters) => {
   if (type) query.type = type;
   if (maxPrice) query.cheapestPrice = { $lte: maxPrice };
 
-  return Hotel.find(query);
+  return await Hotel.find(query);
 };
 
 export const updateHotel = async (id, updatedData) => {

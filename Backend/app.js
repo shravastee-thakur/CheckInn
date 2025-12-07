@@ -6,6 +6,7 @@ import { errorHandler } from "./middleware/errorMiddleware.js";
 
 import userRoutes from "./routes/userRoutes.js";
 import hotelRoutes from "./routes/hotelRoutes.js";
+import roomRoutes from "./routes/roomRoutes.js";
 
 const app = express();
 
@@ -26,6 +27,9 @@ app.use("/api/v1/user", userRoutes);
 
 app.use("/api/v1/hotel", hotelRoutes);
 // http://localhost:3000/api/v1/hotel/createHotel
+
+app.use("/api/v1/room", roomRoutes);
+// http://localhost:3000/api/v1/room/createRoom
 
 app.use(errorHandler);
 export default app;

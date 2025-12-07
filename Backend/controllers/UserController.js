@@ -22,7 +22,7 @@ export const register = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
-      data: user,
+      user,
     });
   } catch (error) {
     logger.error(`Register error: ${error.message}`);
@@ -184,7 +184,10 @@ export const resetPassword = async (req, res, next) => {
 
     logger.info(`Password reset successful for ${user.email}`);
 
-    return res.json({ success: true, message: "Password updated" });
+    return res.json({
+      success: true,
+      message: "Password updated successfully",
+    });
   } catch (error) {
     logger.error(`Reset password error: ${error.message}`);
     next(error);
