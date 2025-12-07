@@ -33,3 +33,21 @@ export const updateRoom = async (id, updatedData) => {
   const updatedRoom = await roomRepo.updateRoom(id, finalUpdate);
   return updatedRoom;
 };
+
+export const getRooms = async () => {
+  return await roomRepo.findRoom();
+};
+
+export const findRoomById = async (id) => {
+  const room = await roomRepo.findRoomById(id);
+  if (!room) {
+    return res.status(404).json({ success: false, message: "Room not found" });
+  }
+
+  return room;
+};
+
+export const deleteRoom = async (id) => {
+  const result = await roomRepo.deleteRoom(id);
+  return result;
+};

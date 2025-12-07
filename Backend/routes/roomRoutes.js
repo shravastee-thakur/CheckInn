@@ -13,6 +13,12 @@ router.post(
   roomController.createRoom
 );
 
+// Get rooms
+router.get("/getRooms", roomController.getRooms);
+
+// Get room by id
+router.get("/getRoomById/:roomId", roomController.getRoomById);
+
 // Check room availability for selected dates
 router.post(
   "/checkAvailability",
@@ -22,10 +28,12 @@ router.post(
 
 // Update room details
 router.put(
-  "/updateRoom/:id",
+  "/updateRoom/:roomId",
   authenticate,
   upload.single("image"),
   roomController.updateRoom
 );
+
+router.delete("/deleteRoom/:roomId", authenticate, roomController.deleteRoom);
 
 export default router;

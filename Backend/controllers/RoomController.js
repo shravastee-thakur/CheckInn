@@ -4,7 +4,6 @@ import { uploadImageToCloudinary } from "../config/cloudinary.js";
 import logger from "../utils/logger.js";
 
 export const createRoom = async (req, res, next) => {
-
   try {
     const { hotelId } = req.params;
     if (!hotelId) {
@@ -16,10 +15,8 @@ export const createRoom = async (req, res, next) => {
       return res.status(404).json({ message: "Hotel not found." });
     }
 
-    // Handle image upload if file exists
     let imageData = null;
 
-    // Check if image is provided via file upload
     if (req.file) {
       try {
         const uploadImage = await uploadImageToCloudinary(req.file.buffer);
@@ -47,7 +44,7 @@ export const createRoom = async (req, res, next) => {
 
     const roomData = {
       hotelId,
-      image: imageData, // Store the image object with url and public_id
+      image: imageData,
       type: req.body.type,
       desc: req.body.desc,
       price: req.body.price,
@@ -89,12 +86,76 @@ export const checkRoomAvailability = async (req, res, next) => {
   }
 };
 
+export const getRooms = async (req, res, next) => {
+  try {
+    const rooms = await roomService.getRooms();
+    if (!rooms) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Rooms not found" });
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Rooms fetched successfully", rooms });
+  } catch (error) {
+    logger.error(`Get All rooms error: ${error.message}`);
+    next(error);
+  }
+};
+
+export const getRoomById = async (req, res, next) => {
+  try {
+    const { roomId } = req.params;
+    const room = await roomService.findRoomById(roomId);
+    if (!room) {
+      return (
+        res.status(404), json({ success: false, message: "Room not found" })
+      );
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Room fetched successfully", room });
+  } catch (error) {
+    logger.error(`Get room by id error: ${error.message}`);
+    next(error);
+  }
+};
+
 export const updateRoom = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { roomId } = req.params;
     const updateData = req.body;
 
-    const updatedRoom = await roomService.updateRoom(id, updateData);
+    const room = await roomService.findRoomById(roomId);
+    if (!room) {
+      return (
+        res.status(404), json({ success: false, message: "Room not found" })
+      );
+    }
+
+    let updatedImage = room.image;
+
+    if (req.file) {
+      if (room.image && room.image[0]?.public_id) {
+        await cloudinary.uploader.destroy(room.image[0].public_id);
+      }
+
+      // Upload new image
+      const uploadedImg = await uploadImageToCloudinary(req.file.buffer);
+      updatedImage = [
+        {
+          url: uploadedImg.secure_url,
+          public_id: uploadedImg.public_id,
+        },
+      ];
+    }
+
+    const updatedRoom = await roomService.updateRoom(id, {
+      ...updateData,
+      image: updatedImage,
+    });
 
     return res.status(201).json({
       success: true,
@@ -103,6 +164,25 @@ export const updateRoom = async (req, res, next) => {
     });
   } catch (error) {
     logger.error(`Update room error: ${error.message}`);
+    next(error);
+  }
+};
+
+export const deleteRoom = async (req, res, next) => {
+  try {
+    const { roomId } = req.params;
+    const room = await roomService.findRoomById(roomId);
+    if (!room) {
+      return (
+        res.status(404), json({ success: false, message: "Room not found" })
+      );
+    }
+    const result = await roomService.deleteRoom(roomId);
+    return res
+      .status(200)
+      .json({ success: true, message: "Room deleted successfully" });
+  } catch (error) {
+    logger.error(`Delete room error: ${error.message}`);
     next(error);
   }
 };
