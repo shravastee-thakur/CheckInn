@@ -38,9 +38,9 @@ export const createRoom = async (req, res, next) => {
       });
     }
 
-    const currentDate = new Date();
-    const endDate = new Date(currentDate);
-    endDate.setDate(endDate.getDate() + 5);
+    // const currentDate = new Date();
+    // const endDate = new Date(currentDate);
+    // endDate.setDate(endDate.getDate() + 5);
 
     const roomData = {
       hotelId,
@@ -49,7 +49,7 @@ export const createRoom = async (req, res, next) => {
       desc: req.body.desc,
       price: req.body.price,
       maxPeople: req.body.maxPeople,
-      availabilityDates: req.body.availabilityDates || [],
+      // availabilityDates: req.body.availabilityDates || [],
     };
 
     const room = await roomService.createRoom(roomData);
@@ -65,26 +65,26 @@ export const createRoom = async (req, res, next) => {
   }
 };
 
-export const checkRoomAvailability = async (req, res, next) => {
-  try {
-    const { hotelId, startDate, endDate } = req.body;
-    const isAvailable = await roomService.checkRoomAvailability(
-      hotelId,
-      startDate,
-      endDate
-    );
+// export const checkRoomAvailability = async (req, res, next) => {
+//   try {
+//     const { hotelId, startDate, endDate } = req.body;
+//     const isAvailable = await roomService.checkRoomAvailability(
+//       hotelId,
+//       startDate,
+//       endDate
+//     );
 
-    if (isAvailable) {
-      return res.status(201).json({
-        success: true,
-        message: "Room is available for booking.",
-      });
-    }
-  } catch (error) {
-    logger.error(`Check room availablity error: ${error.message}`);
-    next(error);
-  }
-};
+//     if (isAvailable) {
+//       return res.status(201).json({
+//         success: true,
+//         message: "Room is available for booking.",
+//       });
+//     }
+//   } catch (error) {
+//     logger.error(`Check room availablity error: ${error.message}`);
+//     next(error);
+//   }
+// };
 
 export const getRooms = async (req, res, next) => {
   try {

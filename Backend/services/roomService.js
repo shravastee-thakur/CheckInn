@@ -5,17 +5,17 @@ export const createRoom = async (roomData) => {
   return await roomRepo.createRoomsForHotel(roomData);
 };
 
-export const checkRoomAvailability = async (hotelId, startDate, endDate) => {
-  const conflictingRooms = await roomRepo.findRoomsWithConflict(
-    hotelId,
-    startDate,
-    endDate
-  );
-  if (conflictingRooms.length > 0) {
-    throw ApiError(400, "Room is already booked for the selected dates.");
-  }
-  return true;
-};
+// export const checkRoomAvailability = async (hotelId, startDate, endDate) => {
+//   const conflictingRooms = await roomRepo.findRoomsWithConflict(
+//     hotelId,
+//     startDate,
+//     endDate
+//   );
+//   if (conflictingRooms.length > 0) {
+//     throw ApiError(400, "Room is already booked for the selected dates.");
+//   }
+//   return true;
+// };
 
 export const updateRoom = async (id, updatedData) => {
   const room = await roomRepo.findRoomById(id);

@@ -29,18 +29,18 @@ const roomSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    availabilityDates: [
-      {
-        startDate: {
-          type: Date,
-          required: true,
-        },
-        endDate: {
-          type: Date,
-          required: true,
-        },
-      },
-    ],
+    // availabilityDates: [
+    //   {
+    //     startDate: {
+    //       type: Date,
+    //       required: true,
+    //     },
+    //     endDate: {
+    //       type: Date,
+    //       required: true,
+    //     },
+    //   },
+    // ],
   },
   { timestamps: true }
 );

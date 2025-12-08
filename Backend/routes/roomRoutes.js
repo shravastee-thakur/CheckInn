@@ -20,11 +20,11 @@ router.get("/getRooms", roomController.getRooms);
 router.get("/getRoomById/:roomId", roomController.getRoomById);
 
 // Check room availability for selected dates
-router.post(
-  "/checkAvailability",
-  authenticate,
-  roomController.checkRoomAvailability
-);
+// router.post(
+//   "/checkAvailability",
+//   authenticate,
+//   roomController.checkRoomAvailability
+// );
 
 // Update room details
 router.put(

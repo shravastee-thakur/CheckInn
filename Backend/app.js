@@ -7,6 +7,7 @@ import { errorHandler } from "./middleware/errorMiddleware.js";
 import userRoutes from "./routes/userRoutes.js";
 import hotelRoutes from "./routes/hotelRoutes.js";
 import roomRoutes from "./routes/roomRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 const app = express();
 
@@ -30,6 +31,9 @@ app.use("/api/v1/hotel", hotelRoutes);
 
 app.use("/api/v1/room", roomRoutes);
 // http://localhost:3000/api/v1/room/createRoom
+
+app.use("/api/v1/booking", bookingRoutes);
+// http://localhost:3000/api/v1/booking/createBooking
 
 app.use(errorHandler);
 export default app;
