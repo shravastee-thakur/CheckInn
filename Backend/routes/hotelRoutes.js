@@ -15,8 +15,8 @@ router.post(
   "/createHotel",
   validate(hotelCreateSchema),
   authenticate,
-  allowRole("admin"),
-  upload.single("photos"),
+  // allowRole("admin"),
+  upload.single("image"),
   hotelController.createHotel
 );
 
@@ -31,8 +31,8 @@ router.put(
   "/updateHotel/:id",
   validate(hotelUpdateSchema),
   authenticate,
-  allowRole("admin"),
-  upload.single("photos"),
+  // allowRole("admin"),
+  upload.single("image"),
   hotelController.updateHotel
 );
 
@@ -40,7 +40,7 @@ router.put(
 router.delete(
   "/deleteHotel/:id",
   authenticate,
-  allowRole("admin"),
+  // allowRole("admin"),
   hotelController.deleteHotel
 );
 

@@ -1,25 +1,34 @@
 import * as hotelRepo from "../repositories/hotelRepo.js";
 import { ApiError } from "../utils/ApiError.js";
+import { uploadImageToCloudinary } from "../config/cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
+import logger from "../utils/logger.js";
 
-export const createHotel = async (hotelData) => {
+export const createHotel = async (hotelData, fileBuffer) => {
   if (
     !hotelData.name ||
     !hotelData.city ||
-    !hotelData.type ||
     !hotelData.address ||
     !hotelData.distance ||
-    !hotelData.desc ||
-    !hotelData.cheapestPrice
+    !hotelData.description
   ) {
     throw ApiError(400, "All fields are required.");
+  }
+
+  if (fileBuffer) {
+    const uploadImage = await uploadImageToCloudinary(fileBuffer);
+    hotelData.image = {
+      url: uploadImage.secure_url,
+      public_id: uploadImage.public_id,
+    };
   }
 
   const hotel = await hotelRepo.createHotel(hotelData);
   return hotel;
 };
 
-export const findAllHotels = async (filters) => {
-  const hotels = await hotelRepo.findAllHotels(filters);
+export const findAllHotels = async () => {
+  const hotels = await hotelRepo.findAllHotels();
   if (!hotels) throw ApiError(404, "Hotels not found");
   return hotels;
 };
@@ -32,27 +41,30 @@ export const findHotelById = async (id) => {
   return hotel;
 };
 
-export const updateHotel = async (id, updatedData) => {
+export const updatedHotel = async (id, updatedData, fileBuffer) => {
   const hotel = await hotelRepo.findHotelById(id);
-
   if (!hotel) {
     throw ApiError(404, "Hotel not found");
   }
 
+  let image = hotel.image;
+
+  if (fileBuffer) {
+    if (hotel.image?.public_id) {
+      await cloudinary.uploader.destroy(hotel.image.public_id);
+    }
+
+    // Upload new image
+    const uploadedImg = await uploadImageToCloudinary(fileBuffer);
+    updatedImage = {
+      url: uploadedImg.secure_url,
+      public_id: uploadedImg.public_id,
+    };
+  }
+
   const finalData = {
-    name: updatedData.name || hotel.name,
-    type: updatedData.type || hotel.type,
-    city: updatedData.city || hotel.city,
-    address: updatedData.address || hotel.address,
-    distance: updatedData.distance || hotel.distance,
-    photos: updatedData.photos || hotel.photos,
-    desc: updatedData.desc || hotel.desc,
-    rating: updatedData.rating || hotel.rating,
-    cheapestPrice: updatedData.cheapestPrice || hotel.cheapestPrice,
-    featured:
-      updatedData.featured !== undefined
-        ? updatedData.featured
-        : hotel.featured,
+    ...updatedData,
+    image,
   };
 
   const updatedHotel = await hotelRepo.updateHotel(id, finalData);
@@ -61,9 +73,34 @@ export const updateHotel = async (id, updatedData) => {
 };
 
 export const deleteHotel = async (id) => {
-  const result = await hotelRepo.deleteHotel(id);
-  if (!result) {
+  const hotel = await hotelRepo.findHotelById(id);
+  if (!hotel) {
     throw ApiError(404, "Hotel not found");
   }
-  return result;
+
+  if (hotel.image?.public_id) {
+    try {
+      await cloudinary.uploader.destroy(hotel.image.public_id);
+    } catch (cloudinaryError) {
+      logger.error(
+        `Error deleting image from Cloudinary: ${cloudinaryError.message}`
+      );
+    }
+  }
+
+  const hotelRooms = await hotelRepo.findHotelRooms(id);
+  for (const room of hotelRooms) {
+    if (room.image?.public_id) {
+      try {
+        await cloudinary.uploader.destroy(room.image.public_id);
+      } catch (roomImageError) {
+        logger.error(
+          `Error deleting room image from Cloudinary for room ${room._id}: ${roomImageError.message}`
+        );
+      }
+    }
+  }
+
+  await hotelRepo.deleteManyRooms(id);
+  return await hotelRepo.deleteHotel(id);
 };

@@ -3,29 +3,7 @@ import * as userRepo from "../repositories/userRepo.js";
 import { ApiError } from "../utils/ApiError.js";
 import logger from "../utils/logger.js";
 import sendMail from "../config/sendMail.js";
-
-const sendAuthResponse = (res, tokens, user, message = "Success") => {
-  return res
-    .cookie("refreshToken", tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
-    .status(200)
-    .json({
-      success: true,
-      message,
-      accessToken: tokens.accessToken,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        verified: user.isVerified,
-      },
-    });
-};
+import { sendAuthResponse } from "../helpers/sendAuthResponse.js";
 
 export const register = async (req, res, next) => {
   try {

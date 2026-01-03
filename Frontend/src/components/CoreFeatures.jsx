@@ -59,7 +59,7 @@ const CoreFeatures = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-[#e6f0dd] p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
+              className="bg-yellow-100 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100"
             >
               <h2 className="text-xl font-semibold text-[#bda705] mb-3">
                 {feature.icon}
