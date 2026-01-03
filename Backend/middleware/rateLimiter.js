@@ -1,4 +1,4 @@
-import { rateLimit } from "../services/rateLimitService.js";
+import rateLimit from "../services/rateLimitService.js";
 
 export const rateLimiterMiddleware = (limit, windowSec) => {
   return async (req, res, next) => {

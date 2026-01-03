@@ -41,7 +41,7 @@ export const getRooms = async () => {
 export const findRoomById = async (id) => {
   const room = await roomRepo.findRoomById(id);
   if (!room) {
-    return res.status(404).json({ success: false, message: "Room not found" });
+    throw ApiError(404, "Rooms not found");
   }
 
   return room;

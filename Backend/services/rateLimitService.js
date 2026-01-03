@@ -1,6 +1,6 @@
 import { redis } from "../config/redis.js";
 
-export const rateLimitService = async (key, limit, windowSec) => {
+const rateLimitService = async (key, limit, windowSec) => {
   const fullKey = `ratelimit:${key}`;
   const count = await redis.incr(fullKey);
 
@@ -10,3 +10,5 @@ export const rateLimitService = async (key, limit, windowSec) => {
 
   return count > limit;
 };
+
+export default rateLimitService;

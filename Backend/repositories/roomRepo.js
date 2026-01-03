@@ -1,8 +1,6 @@
 import Room from "../models/RoomModel.js";
 
 export const createRoomsForHotel = async (roomData) => {
-  console.log("repo", roomData);
-
   return await Room.create(roomData);
 };
 

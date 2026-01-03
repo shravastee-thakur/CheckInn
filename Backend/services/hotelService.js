@@ -11,7 +11,7 @@ export const createHotel = async (hotelData) => {
     !hotelData.desc ||
     !hotelData.cheapestPrice
   ) {
-    throw new ApiError(400, "All fields are required.");
+    throw ApiError(400, "All fields are required.");
   }
 
   const hotel = await hotelRepo.createHotel(hotelData);
@@ -20,14 +20,14 @@ export const createHotel = async (hotelData) => {
 
 export const findAllHotels = async (filters) => {
   const hotels = await hotelRepo.findAllHotels(filters);
-  if (!hotels) throw new ApiError(404, "Hotels not found");
+  if (!hotels) throw ApiError(404, "Hotels not found");
   return hotels;
 };
 
 export const findHotelById = async (id) => {
   const hotel = await hotelRepo.findHotelById(id);
   if (!hotel) {
-    throw new ApiError(404, "Hotel not found");
+    throw ApiError(404, "Hotel not found");
   }
   return hotel;
 };
@@ -36,7 +36,7 @@ export const updateHotel = async (id, updatedData) => {
   const hotel = await hotelRepo.findHotelById(id);
 
   if (!hotel) {
-    throw new ApiError(404, "Hotel not found");
+    throw ApiError(404, "Hotel not found");
   }
 
   const finalData = {
@@ -63,7 +63,7 @@ export const updateHotel = async (id, updatedData) => {
 export const deleteHotel = async (id) => {
   const result = await hotelRepo.deleteHotel(id);
   if (!result) {
-    throw new ApiError(404, "Hotel not found");
+    throw ApiError(404, "Hotel not found");
   }
   return result;
 };

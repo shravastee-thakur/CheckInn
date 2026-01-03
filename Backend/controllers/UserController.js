@@ -1,28 +1,53 @@
 import * as userService from "../services/userService.js";
-import * as otpService from "../services/otpService.js";
-import * as resetTokenService from "../services/resetTokenService.js";
 import * as userRepo from "../repositories/userRepo.js";
 import { ApiError } from "../utils/ApiError.js";
 import logger from "../utils/logger.js";
-import transporter from "../config/sendMail.js";
-import {
-  loginOtpTemplate,
-  resetPasswordTemplate,
-} from "../emails/templates.js";
-import crypto from "crypto";
-import bcrypt from "bcrypt";
+import sendMail from "../config/sendMail.js";
+
+const sendAuthResponse = (res, tokens, user, message = "Success") => {
+  return res
+    .cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .status(200)
+    .json({
+      success: true,
+      message,
+      accessToken: tokens.accessToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        verified: user.isVerified,
+      },
+    });
+};
 
 export const register = async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
-    const user = await userService.register({ username, email, password });
+    const { username, email, password, role } = req.body;
+    const user = await userService.register({
+      username,
+      email,
+      password,
+      role,
+    });
 
     logger.info(`New user registered: ${user.email}`);
 
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
-      user,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     logger.error(`Register error: ${error.message}`);
@@ -35,17 +60,18 @@ export const loginStepOne = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await userService.loginVerifyCredentials({ email, password });
 
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    await otpService.saveOtp(user.email, otp);
+    const otp = await userService.processLoginOtp(email);
 
-    await transporter.sendMail({
-      from: process.env.SENDER_EMAIL,
-      to: user.email,
-      subject: "Your 2FA Login OTP",
-      html: loginOtpTemplate(otp),
-    });
+    const htmlContent = `
+        <p>Login Verification</p>
+        <p>Your OTP for login is:</p>
+        <h2><strong>${otp}</strong></h2>
+        <p>This OTP will expire in 5 minutes.</p>
+      `;
 
-    logger.info(`OTP sent to ${user.email}`);
+    await sendMail(email, "Your 2FA Login OTP", htmlContent);
+
+    logger.info(`OTP sent to ${email}`);
     return res.json({
       success: true,
       message: "OTP sent to your email. Please verify.",
@@ -63,32 +89,15 @@ export const verifyOtp = async (req, res, next) => {
     const { userId, otp } = req.body;
     if (!userId || !otp) {
       logger.warn("Missing userId or OTP in verifyOtp");
-      throw new ApiError(400, "Missing userId or otp");
+      throw ApiError(400, "Missing userId or otp");
     }
 
-    const user = await userRepo.findById(userId);
-    if (!user) throw new ApiError(404, "User not found");
-
-    const storedOtp = await otpService.getOtp(user.email);
-    if (!storedOtp || String(storedOtp) !== String(otp)) {
-      logger.warn(`Invalid OTP for user: ${user.email}`);
-      throw new ApiError(401, "Invalid or expired OTP");
-    }
-
-    await otpService.deleteOtp(user.email);
+    const user = await userService.verifyUserOtp(userId, otp);
 
     const tokens = await userService.createTokensAndSave(user);
     logger.info(`OTP verified. Login success for ${user.email}`);
 
-    res
-      .cookie("refreshToken", tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
-      .status(200)
-      .json({ success: true, accessToken: tokens.accessToken });
+    return sendAuthResponse(res, tokens, user, "Logged in successfully");
   } catch (error) {
     logger.error(`OTP verification error: ${error.message}`);
     next(error);
@@ -104,15 +113,12 @@ export const refreshHandler = async (req, res, next) => {
       oldToken
     );
 
-    res
-      .cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
-      .status(200)
-      .json({ success: true, accessToken });
+    return sendAuthResponse(
+      res,
+      { accessToken, refreshToken },
+      user,
+      "Token refreshed"
+    );
   } catch (error) {
     logger.error(`Refresh token error: ${error.message}`);
     next(error);
@@ -122,27 +128,24 @@ export const refreshHandler = async (req, res, next) => {
 export const forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-    if (!email) throw new ApiError(400, "Email is required");
 
     const user = await userRepo.findByEmail(email);
     if (!user) throw new ApiError(404, "User not found");
 
-    const resetToken = crypto.randomBytes(10).toString("hex");
-    const hashToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
-
-    await resetTokenService.saveResetToken(user._id, hashToken);
+    const resetToken = await userService.generatePasswordResetToken(user._id);
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&id=${user._id}`;
 
-    await transporter.sendMail({
-      from: process.env.SENDER_EMAIL,
-      to: email,
-      subject: "Reset your password",
-      html: resetPasswordTemplate(resetLink),
-    });
+    const htmlContent = `
+        <h2>Password Reset</h2>
+        <p>Click the link below to verify your account:</p>
+        <a href="${resetLink}" style="padding:10px 15px;background:#4f46e5;color:#fff;   border-radius:4px;text-decoration:none;">
+      Verify Email
+        </a>
+        <p>This link will expire in 5 minutes.</p>
+      `;
+
+    await sendMail(email, "Password Reset Request", htmlContent);
 
     logger.info(`Password reset link sent to ${email}`);
 
@@ -163,26 +166,7 @@ export const resetPassword = async (req, res, next) => {
     if (!userId || !token || !newPassword)
       throw new ApiError(400, "Missing required fields");
 
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-    const storedResetToken = await resetTokenService.getResetToken(userId);
-
-    if (!storedResetToken) {
-      throw new ApiError(400, "Token expired or invalid");
-    }
-
-    if (storedResetToken !== hashedToken) {
-      throw new ApiError(401, "Invalid reset token");
-    }
-
-    await resetTokenService.deleteResetToken(userId);
-
-    const user = await userRepo.findById(userId);
-    if (!user) throw new ApiError(404, "User not found");
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await userRepo.updateUser(userId, { password: hashedPassword });
-
-    logger.info(`Password reset successful for ${user.email}`);
+    await userService.verifyAndResetPassword(userId, token, newPassword);
 
     return res.json({
       success: true,

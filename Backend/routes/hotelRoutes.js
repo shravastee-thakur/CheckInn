@@ -7,6 +7,7 @@ import {
   hotelUpdateSchema,
 } from "../validators/hotelValidator.js";
 import upload from "../middleware/upload.js";
+import { allowRole } from "../middleware/roleMidleware.js";
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.post(
   "/createHotel",
   validate(hotelCreateSchema),
   authenticate,
+  allowRole("admin"),
   upload.single("photos"),
   hotelController.createHotel
 );
@@ -29,11 +31,17 @@ router.put(
   "/updateHotel/:id",
   validate(hotelUpdateSchema),
   authenticate,
+  allowRole("admin"),
   upload.single("photos"),
   hotelController.updateHotel
 );
 
 // Delete a hotel
-router.delete("/deleteHotel/:id", authenticate, hotelController.deleteHotel);
+router.delete(
+  "/deleteHotel/:id",
+  authenticate,
+  allowRole("admin"),
+  hotelController.deleteHotel
+);
 
 export default router;

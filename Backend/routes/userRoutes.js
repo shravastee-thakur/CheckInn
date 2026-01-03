@@ -8,6 +8,7 @@ import {
 import { authenticate } from "../middleware/authMiddleware.js";
 import { sanitizeMiddleware } from "../middleware/sanitize.js";
 import { validate } from "../middleware/validate.js";
+import { rateLimiterMiddleware } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ router.post(
   "/loginStepOne",
   sanitizeMiddleware,
   validate(loginSchema),
+  rateLimiterMiddleware(5, 60),
   userController.loginStepOne
 );
 router.post(
@@ -33,6 +35,7 @@ router.post("/refreshHandler", userController.refreshHandler);
 router.post(
   "/forgetPassword",
   sanitizeMiddleware,
+  rateLimiterMiddleware(3, 60),
   userController.forgetPassword
 );
 router.post("/resetPassword", sanitizeMiddleware, userController.resetPassword);

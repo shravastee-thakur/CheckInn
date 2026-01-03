@@ -22,7 +22,7 @@ export const updateHotel = async (id, updatedData) => {
   });
 
   if (!updatedHotel) {
-    throw new ApiError(404, "Hotel not found");
+    throw ApiError(404, "Hotel not found");
   }
 
   return updatedHotel;

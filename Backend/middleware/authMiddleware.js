@@ -19,10 +19,7 @@ export const authenticate = async (req, res, next) => {
 
     const user = await userService.getUserById(decoded.id);
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: User no longer exists",
-      });
+      throw ApiError(401, "Unauthorized: User no longer exists");
     }
 
     req.user = {

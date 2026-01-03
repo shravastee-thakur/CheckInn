@@ -2,6 +2,7 @@ import express from "express";
 import * as roomController from "../controllers/RoomController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
+import { allowRole } from "../middleware/roleMidleware.js";
 
 const router = express.Router();
 
@@ -9,6 +10,7 @@ const router = express.Router();
 router.post(
   "/createRoom/:hotelId",
   authenticate,
+  allowRole("admin"),
   upload.single("image"),
   roomController.createRoom
 );
@@ -19,21 +21,20 @@ router.get("/getRooms", roomController.getRooms);
 // Get room by id
 router.get("/getRoomById/:roomId", roomController.getRoomById);
 
-// Check room availability for selected dates
-// router.post(
-//   "/checkAvailability",
-//   authenticate,
-//   roomController.checkRoomAvailability
-// );
-
 // Update room details
 router.put(
   "/updateRoom/:roomId",
   authenticate,
+  allowRole("admin"),
   upload.single("image"),
   roomController.updateRoom
 );
 
-router.delete("/deleteRoom/:roomId", authenticate, roomController.deleteRoom);
+router.delete(
+  "/deleteRoom/:roomId",
+  authenticate,
+  allowRole("admin"),
+  roomController.deleteRoom
+);
 
 export default router;
