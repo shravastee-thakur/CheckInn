@@ -15,23 +15,21 @@ router.post(
   "/createHotel",
   validate(hotelCreateSchema),
   authenticate,
-  // allowRole("admin"),
+  allowRole("admin"),
   upload.single("image"),
   hotelController.createHotel
 );
 
-// Get all hotels
 router.get("/getHotels", hotelController.getAllHotels);
-
-// Get a hotel by ID
 router.get("/getHotelById/:id", hotelController.getHotelById);
+router.get("/getHotelRooms/:hotelId/rooms", hotelController.getHotelRooms);
 
 // Update a hotel
 router.put(
   "/updateHotel/:id",
   validate(hotelUpdateSchema),
   authenticate,
-  // allowRole("admin"),
+  allowRole("admin"),
   upload.single("image"),
   hotelController.updateHotel
 );
@@ -40,7 +38,7 @@ router.put(
 router.delete(
   "/deleteHotel/:id",
   authenticate,
-  // allowRole("admin"),
+  allowRole("admin"),
   hotelController.deleteHotel
 );
 

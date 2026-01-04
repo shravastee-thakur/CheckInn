@@ -12,6 +12,7 @@ export const registerSchema = joi.object({
     "string.empty": "Password is required",
     "string.min": "Password must be at least 6 characters",
   }),
+  role: joi.string(),
 });
 
 export const loginSchema = joi.object({

@@ -5,15 +5,17 @@ import toast from "react-hot-toast";
 export const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
-  const [userId, setUserId] = useState(null);
+  const [userId, setUserId] = useState("");
   const [verified, setVerified] = useState(false);
-  const [accessToken, setAccessToken] = useState(null);
+  const [role, setRole] = useState("");
+  const [accessToken, setAccessToken] = useState("");
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     const refreshTokenHandler = async () => {
       try {
         const res = await axios.post(
-          "http://localhost:3000/api/v1/user/refreshHandler",
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/refreshHandler`,
           {},
           {
             withCredentials: true,
@@ -23,13 +25,12 @@ const AuthProvider = ({ children }) => {
           setAccessToken(res.data.accessToken);
           setVerified(res.data.user.verified);
           setUserId(res.data.user.id);
+          setRole(res.data.user.role);
         }
       } catch (error) {
-        if (error.response && error.response.status === 401) {
-          // Do nothing, user not logged in
-        } else {
-          console.error("Error during refresh token check:", error);
-        }
+        console.error("Error during refresh token check:", error);
+      } finally {
+        setAuthLoading(false);
       }
     };
 
@@ -39,7 +40,7 @@ const AuthProvider = ({ children }) => {
   const loginStepOne = async (formData) => {
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/v1/user/loginStepOne",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/loginStepOne`,
         formData,
         {
           headers: {
@@ -53,8 +54,8 @@ const AuthProvider = ({ children }) => {
         toast.success(res.data.message, {
           style: {
             borderRadius: "10px",
-            background: "#C5FF95",
-            color: "#333",
+            background: "#333",
+            color: "#fff",
           },
         });
         setUserId(res.data.userId);
@@ -62,13 +63,21 @@ const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.log(error);
+      toast.error("Invalid email or password", {
+        style: {
+          borderRadius: "10px",
+          background: "#FFB5B5",
+          color: "#333",
+        },
+      });
+      return false;
     }
   };
 
   const verifyLoginOtp = async (otp) => {
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/v1/user/verifyLogin",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/verifyLogin`,
         { userId, otp },
         {
           headers: {
@@ -82,16 +91,25 @@ const AuthProvider = ({ children }) => {
         toast.success(res.data.message, {
           style: {
             borderRadius: "10px",
-            background: "#C5FF95",
-            color: "#333",
+            background: "#333",
+            color: "#fff",
           },
         });
         setVerified(res.data.user.verified);
+        setRole(res.data.user.role);
         setAccessToken(res.data.accessToken);
         return true;
       }
     } catch (error) {
       console.log(error);
+      toast.error("Invalid otp", {
+        style: {
+          borderRadius: "10px",
+          background: "#FFB5B5",
+          color: "#333",
+        },
+      });
+      return false;
     }
   };
 
@@ -99,7 +117,7 @@ const AuthProvider = ({ children }) => {
     if (!accessToken) return;
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/v1/user/logout",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/logout`,
         {},
         {
           headers: {
@@ -112,10 +130,25 @@ const AuthProvider = ({ children }) => {
         setUserId(null);
         setAccessToken(null);
         setVerified(false);
+        toast.success(res.data.message, {
+          style: {
+            borderRadius: "10px",
+            background: "#333",
+            color: "#fff",
+          },
+        });
         return true;
       }
     } catch (error) {
       console.log(error);
+      toast.error("Failed to logout", {
+        style: {
+          borderRadius: "10px",
+          background: "#FFB5B5",
+          color: "#333",
+        },
+      });
+      return false;
     }
   };
 
@@ -129,6 +162,8 @@ const AuthProvider = ({ children }) => {
           logout,
           userId,
           accessToken,
+          role,
+          authLoading,
         }}
       >
         {children}

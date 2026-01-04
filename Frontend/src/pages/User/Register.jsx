@@ -26,7 +26,7 @@ const Register = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/v1/user/register",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/register`,
         formData,
         {
           headers: {
@@ -55,7 +55,7 @@ const Register = () => {
     <div className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white shadow-xl rounded-lg overflow-hidden">
-          <div className="bg-[#03377f] p-6 text-white">
+          <div className="bg-[#43970b] p-6 text-white">
             <h2 className="text-2xl font-bold text-center">Create Account</h2>
           </div>
 
@@ -128,7 +128,7 @@ const Register = () => {
 
             <button
               type="submit"
-              className="w-full bg-[#03377f] hover:bg-[#0852ba] text-white font-bold py-2 px-4 rounded-md transition duration-300"
+              className="w-full bg-[#43970b] hover:bg-[#337904] text-white font-bold py-2 px-4 rounded-md transition duration-300"
             >
               Register
             </button>

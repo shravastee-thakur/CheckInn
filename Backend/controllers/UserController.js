@@ -87,9 +87,8 @@ export const refreshHandler = async (req, res, next) => {
     const oldToken = req.cookies?.refreshToken;
     if (!oldToken) throw new ApiError(401, "Refresh token missing");
 
-    const { accessToken, refreshToken } = await userService.rotateRefreshToken(
-      oldToken
-    );
+    const { accessToken, refreshToken, user } =
+      await userService.rotateRefreshToken(oldToken);
 
     return sendAuthResponse(
       res,

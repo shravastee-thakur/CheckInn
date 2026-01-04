@@ -3,15 +3,13 @@ import logger from "../utils/logger.js";
 
 export const createBookingController = async (req, res, next) => {
   try {
-    const { userId, roomId, startDate, endDate, totalAmount } = req.body;
+    const bookingData = {
+      ...req.body,
+      userId: req.user.id,
+    };
 
-    const booking = await bookingService.createBookingService(
-      userId,
-      roomId,
-      startDate,
-      endDate,
-      totalAmount
-    );
+    const booking = await bookingService.createBookingService(bookingData);
+
     return res.status(201).json({
       success: true,
       booking,
@@ -37,16 +35,28 @@ export const getBookingByUserscontroller = async (req, res, next) => {
   }
 };
 
+export const checkRoomAvailability = async (req, res, next) => {
+  try {
+    const { roomId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    const availability = await bookingService.checkAvailability(
+      roomId,
+      startDate,
+      endDate
+    );
+
+    res.status(200).json({ success: true, availability });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getBookingByIdController = async (req, res, next) => {
   const { bookingId } = req.params;
   try {
     const booking = await bookingService.getBookingByIdService(bookingId);
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
-      });
-    }
+
     return res.status(200).json({
       success: true,
       booking,

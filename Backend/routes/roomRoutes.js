@@ -8,15 +8,12 @@ const router = express.Router();
 
 // Create a room
 router.post(
-  "/createRoom/:hotelId",
+  "/createRoom",
   authenticate,
   allowRole("admin"),
   upload.single("image"),
   roomController.createRoom
 );
-
-// Get rooms
-router.get("/getRooms", roomController.getRooms);
 
 // Get room by id
 router.get("/getRoomById/:roomId", roomController.getRoomById);

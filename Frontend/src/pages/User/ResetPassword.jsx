@@ -22,7 +22,7 @@ const ResetPassword = () => {
     setIsSubmitting(true);
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/v1/user/resetPassword",
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/users/resetPassword`,
         { userId, token, newPassword },
         {
           withCredentials: true,
@@ -33,8 +33,8 @@ const ResetPassword = () => {
         toast.success(res.data.message, {
           style: {
             borderRadius: "10px",
-            background: "#C5FF95",
-            color: "#333",
+            background: "#333",
+            color: "#fff",
           },
         });
 
@@ -42,6 +42,13 @@ const ResetPassword = () => {
       }
     } catch (error) {
       console.log(error);
+      toast.error("Failed to reset password", {
+        style: {
+          borderRadius: "10px",
+          background: "#FFB5B5",
+          color: "#333",
+        },
+      });
     }
   };
 
@@ -49,7 +56,7 @@ const ResetPassword = () => {
     <div className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white shadow-xl rounded-lg overflow-hidden">
-          <div className="bg-[#03377f] p-6 text-white">
+          <div className="bg-[#43970b] p-6 text-white">
             <h2 className="text-2xl font-bold text-center">Set New Password</h2>
           </div>
 
@@ -91,7 +98,7 @@ const ResetPassword = () => {
               disabled={!isFormValid || isSubmitting}
               className={`w-full font-bold py-2 px-4 rounded-md transition duration-300 ${
                 isFormValid && !isSubmitting
-                  ? "bg-[#03377f] hover:bg-[#0852ba] text-white"
+                  ? "bg-[#43970b] hover:bg-[#337904] text-white"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >

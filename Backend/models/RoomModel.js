@@ -7,17 +7,15 @@ const roomSchema = new mongoose.Schema(
       ref: "Hotel",
       required: true,
     },
-    image: [
-      {
-        url: { type: String },
-        public_id: { type: String },
-      },
-    ],
+    image: {
+      url: { type: String },
+      public_id: { type: String },
+    },
     type: {
       type: String,
       required: true,
     },
-    desc: {
+    description: {
       type: String,
       required: true,
     },
@@ -29,18 +27,6 @@ const roomSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    // availabilityDates: [
-    //   {
-    //     startDate: {
-    //       type: Date,
-    //       required: true,
-    //     },
-    //     endDate: {
-    //       type: Date,
-    //       required: true,
-    //     },
-    //   },
-    // ],
   },
   { timestamps: true }
 );

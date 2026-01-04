@@ -23,16 +23,16 @@ app.use(cookieParser());
 app.use(sanitizeMiddleware);
 
 // Routes
-app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/users", userRoutes);
 // http://localhost:3000/api/v1/user/register
 
-app.use("/api/v1/hotel", hotelRoutes);
+app.use("/api/v1/hotels", hotelRoutes);
 // http://localhost:3000/api/v1/hotel/createHotel
 
-app.use("/api/v1/room", roomRoutes);
+app.use("/api/v1/rooms", roomRoutes);
 // http://localhost:3000/api/v1/room/createRoom
 
-app.use("/api/v1/booking", bookingRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
 // http://localhost:3000/api/v1/booking/createBooking
 
 app.use(errorHandler);

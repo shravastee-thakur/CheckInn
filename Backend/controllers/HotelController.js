@@ -3,8 +3,6 @@ import logger from "../utils/logger.js";
 import { ApiError } from "../utils/ApiError.js";
 
 export const createHotel = async (req, res, next) => {
-  console.log(req.body);
-
   try {
     const hotelData = req.body;
     const fileBuffer = req.file ? req.file.buffer : null;
@@ -71,6 +69,22 @@ export const deleteHotel = async (req, res, next) => {
     return res.json({ success: true, message: "Hotel deleted successfully" });
   } catch (error) {
     logger.error(`Delete Hotel error: ${error.message}`);
+    next(error);
+  }
+};
+
+export const getHotelRooms = async (req, res, next) => {
+  try {
+    const { hotelId } = req.params;
+
+    const rooms = await hotelService.findHotelRelatedRooms(hotelId);
+
+    return res.status(200).json({
+      success: true,
+      rooms,
+    });
+  } catch (error) {
+    logger.error(`Error in get hotel rooms: ${error.message}`);
     next(error);
   }
 };

@@ -41,6 +41,16 @@ export const findHotelById = async (id) => {
   return hotel;
 };
 
+export const findHotelRelatedRooms = async (id) => {
+  const hotels = await hotelRepo.findHotelById(id);
+  if (!hotels) {
+    throw ApiError(404, "Hotels not found");
+  }
+
+  const rooms = await hotelRepo.findHotelRooms(id);
+  return rooms;
+};
+
 export const updatedHotel = async (id, updatedData, fileBuffer) => {
   const hotel = await hotelRepo.findHotelById(id);
   if (!hotel) {
@@ -56,7 +66,7 @@ export const updatedHotel = async (id, updatedData, fileBuffer) => {
 
     // Upload new image
     const uploadedImg = await uploadImageToCloudinary(fileBuffer);
-    updatedImage = {
+    image = {
       url: uploadedImg.secure_url,
       public_id: uploadedImg.public_id,
     };

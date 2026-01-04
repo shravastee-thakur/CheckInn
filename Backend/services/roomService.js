@@ -1,44 +1,39 @@
 import * as roomRepo from "../repositories/roomRepo.js";
+import * as hotelRepo from "../repositories/hotelRepo.js";
 import { ApiError } from "../utils/ApiError.js";
+import { uploadImageToCloudinary } from "../config/cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
 
-export const createRoom = async (roomData) => {
-  return await roomRepo.createRoomsForHotel(roomData);
-};
+export const createRoom = async (roomData, fileBuffer) => {
 
-// export const checkRoomAvailability = async (hotelId, startDate, endDate) => {
-//   const conflictingRooms = await roomRepo.findRoomsWithConflict(
-//     hotelId,
-//     startDate,
-//     endDate
-//   );
-//   if (conflictingRooms.length > 0) {
-//     throw ApiError(400, "Room is already booked for the selected dates.");
-//   }
-//   return true;
-// };
 
-export const updateRoom = async (id, updatedData) => {
-  const room = await roomRepo.findRoomById(id);
-  if (!room) {
-    throw ApiError(404, "Room not found");
+  if (
+    !roomData.hotelId ||
+    !roomData.type ||
+    !roomData.description ||
+    !roomData.price ||
+    !roomData.maxPeople
+  ) {
+    throw ApiError(400, "Required fields are missing");
   }
 
-  const finalUpdate = {
-    image: updatedData.image || room.image,
-    type: updatedData.type || room.type,
-    desc: updatedData.desc || room.desc,
-    price: updatedData.price || room.price,
-    maxPeople: updatedData.maxPeople || room.maxPeople,
-  };
-  const updatedRoom = await roomRepo.updateRoom(id, finalUpdate);
-  return updatedRoom;
+  const hotel = await hotelRepo.findHotelById(roomData.hotelId);
+  if (!hotel) {
+    throw ApiError(404, "Hotel not found");
+  }
+
+  if (fileBuffer) {
+    const uploadImg = await uploadImageToCloudinary(fileBuffer);
+    roomData.image = {
+      url: uploadImg.secure_url,
+      public_id: uploadImg.public_id,
+    };
+  }
+
+  return await roomRepo.createRoom(roomData);
 };
 
-export const getRooms = async () => {
-  return await roomRepo.findRoom();
-};
-
-export const findRoomById = async (id) => {
+export const getRoomById = async (id) => {
   const room = await roomRepo.findRoomById(id);
   if (!room) {
     throw ApiError(404, "Rooms not found");
@@ -47,7 +42,41 @@ export const findRoomById = async (id) => {
   return room;
 };
 
+export const updateRoom = async (id, updatedData, fileBuffer) => {
+  const room = await roomRepo.findRoomById(id);
+  if (!room) {
+    throw ApiError(404, "Room not found");
+  }
+
+  let image = room.image;
+
+  if (fileBuffer) {
+    if (room.image?.public_id) {
+      await cloudinary.uploader.destroy(room.image.public_id);
+    }
+
+    const uploadedImg = await uploadImageToCloudinary(fileBuffer);
+    image = {
+      url: uploadedImg.secure_url,
+      public_id: uploadedImg.public_id,
+    };
+  }
+
+  const updatedRoom = await roomRepo.updateRoom(id, {
+    ...updatedData,
+    image,
+  });
+  return updatedRoom;
+};
+
 export const deleteRoom = async (id) => {
+  const room = await roomRepo.findRoomById(id);
+  if (!room) throw ApiError(404, "Room not found");
+
+  if (room.image?.public_id) {
+    await cloudinary.uploader.destroy(room.image.public_id);
+  }
+
   const result = await roomRepo.deleteRoom(id);
   return result;
 };

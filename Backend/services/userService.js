@@ -49,7 +49,12 @@ export const createTokensAndSave = async (user) => {
   const accessToken = generateAccessToken({ id: user._id, role: user.role });
   const refreshToken = generateRefreshToken({ id: user._id, role: user.role });
 
-  await userRepo.updateUser(user._id, { refreshToken });
+  const hashedRefreshToken = crypto
+    .createHash("sha256")
+    .update(refreshToken)
+    .digest("hex");
+
+  await userRepo.updateUser(user._id, { refreshToken: hashedRefreshToken });
   return { accessToken, refreshToken };
 };
 
@@ -84,7 +89,12 @@ export const rotateRefreshToken = async (oldToken) => {
   const user = await userRepo.findById(decoded.id);
   if (!user) throw ApiError(404, "User not found");
 
-  if (!user.refreshToken || user.refreshToken !== oldToken) {
+  const hashedRefreshToken = crypto
+    .createHash("sha256")
+    .update(oldToken)
+    .digest("hex");
+
+  if (!user.refreshToken || user.refreshToken !== hashedRefreshToken) {
     throw ApiError(401, "Refresh token mismatch");
   }
 
@@ -94,16 +104,20 @@ export const rotateRefreshToken = async (oldToken) => {
     role: user.role,
   });
 
-  await userRepo.updateUser(user._id, { refreshToken: newRefreshToken });
+  const hashedNewRefreshToken = crypto
+    .createHash("sha256")
+    .update(newRefreshToken)
+    .digest("hex");
+
+  await userRepo.updateUser(user._id, { refreshToken: hashedNewRefreshToken });
 
   return { accessToken, refreshToken: newRefreshToken, user };
 };
 
-
 export const generatePasswordResetToken = async (userId) => {
   const resetToken = crypto.randomBytes(10).toString("hex");
   const hashToken = crypto
-    .createHash("sha256")
+    .createHmac("sha256", process.env.HMAC_SECRET)
     .update(resetToken)
     .digest("hex");
 
@@ -112,7 +126,10 @@ export const generatePasswordResetToken = async (userId) => {
 };
 
 export const verifyAndResetPassword = async (userId, token, newPassword) => {
-  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const hashedToken = crypto
+    .createHmac("sha256", process.env.HMAC_SECRET)
+    .update(token)
+    .digest("hex");
   const storedResetToken = await resetTokenService.getResetToken(userId);
 
   if (!storedResetToken || storedResetToken !== hashedToken) {
@@ -124,7 +141,6 @@ export const verifyAndResetPassword = async (userId, token, newPassword) => {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   await userRepo.updateUser(userId, { password: hashedPassword });
 };
-
 
 export const getUserById = async (userId) => {
   return userRepo.findById(userId);
