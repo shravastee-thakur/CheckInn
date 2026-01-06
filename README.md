@@ -1,89 +1,42 @@
+
+<img width="1261" height="597" alt="CheckInn1" src="https://github.com/user-attachments/assets/44b156b9-7f35-4a04-877b-6167d93288ad" />
+<img width="1263" height="595" alt="CheckInn2" src="https://github.com/user-attachments/assets/ec6a0b81-5afe-47f2-89db-408d2a4c813f" />
+
+<img width="1259" height="591" alt="CheckInn3" src="https://github.com/user-attachments/assets/1ef79031-f17c-4d37-875c-7e9b65e225de" />
+
 # CheckInn
 
-## Hotel Booking System Backend (SRP Structure)
+## Hotel Booking System (SRP Structure)
 ### Overview
 
-This project is a backend implementation of a hotel booking system following the Single Responsibility Principle (SRP). The system includes modules for managing users, hotels, rooms, and bookings with clean, maintainable, and modular code.
-
-### Purpose: The system is designed for learning how to structure a backend application using SRP.
-
-No frontend: This project does not include a frontend; it focuses solely on backend architecture and logic.
+A MERN based Hotel Booking website following the Single Responsibility Principle (SRP), that provides functionality for hotel management, room booking, and payment processing. This project includes features like date concurrency, two-factor authentication (2FA), rate limiting with Redis, role-based access control (RBAC), and payment integration using Stripe.
 
 ### Features
-
-- User Authentication: JWT-based login and registration for users.
-
-- Hotel Management: Admin can view, add, update, and delete hotels.
-
-- Room Management: Includes creation of rooms with availability dates, checking for double bookings.
-
-- Booking Management: Allows users to book rooms with date validation to avoid overlaps.
-
-- Image Uploads: Using Cloudinary for hotel photo management.
-
-- Rate Limiting: Prevents abuse of APIs via Redis rate-limiting for email and IP.
-
-- Logging: Detailed API logging with Winston for debugging and monitoring.
-
-- Validation: Request validation via Joi to ensure data integrity.
-
-- Password Hashing: User passwords are hashed using Bcrypt.js.
-
-- MongoDB Sanitation: All queries are sanitized to prevent MongoDB injection attacks.
+- **Hotel Management**: Admins can add, update, or delete hotels and manage the list of rooms.
+- **Room Booking**: Users can browse hotels, check room availability, and book rooms based on their preferences.
+- **Date Concurrency**: Prevents double booking of rooms for the same dates.
+- **Payment Gateway Integration**: Stripe is used to process payments for bookings.
+- **Two-Factor Authentication (2FA)**: Users can enable 2FA for added security during login.
+- **Role-Based Access Control (RBAC)**: Different user roles (Admin, User) with restricted access to certain features.
+- **Rate Limiting**: Redis is used to limit the number of requests from users and to store OTPs.
+- **Secure Authentication**: JWT-based authentication and bcrypt for password hashing.
 
 ### Technologies Used
+- Backend: Node.js, Express.js
+- Database: MongoDB, Mongoose
+- Authentication: JWT, bcrypt
+- File Uploads: Multer, Cloudinary (for images)
+- Redis: Used for rate limiting and OTP storage
+- Payment Gateway: Stripe
+- Logging: Winston
+- Email Service: Nodemailer
+- Validation: Joi
+- Security: Helmet, mongo-sanitize
+- Other: dotenv, cookie-parser, cors
 
-- Node.js: JavaScript runtime to build the backend.
-
-- Express.js: Framework for building REST APIs.
-
-- MongoDB: NoSQL database for data storage.
-
-- Mongoose: ODM to interact with MongoDB.
-
-- JWT: Authentication and authorization mechanism.
-
-- Cloudinary: Used for storing images (e.g., hotel photos).
-
-- Bcrypt: For password hashing.
-
-- Joi: Request validation for APIs.
-
-- Multer: For handling file uploads.
-
-- Redis: For OTP storage and rate limiting (with IP and email).
-
-- Winston: For logging.
-
-- Mongo Sanitize: For query sanitization.
-
-### Modules
-
-User Module
-
-- User registration and login (JWT-based authentication).
-
-- Role-based access control (Admin, User).
-
-Hotel Module
-
-- Admin can add, update, delete, and view hotels.
-
-- Handles hotel details like name, location, photos, and amenities.
-
-Room Module
-
-- Admin can manage rooms, check availability, and handle room creation.
-
-- Prevents double bookings by ensuring availability dates don't overlap.
-
-Booking Module
-
-- Users can book rooms by selecting a hotel, room, and booking dates.
-
-- Handles booking status (pending, confirmed, canceled).
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE
- file for details.
+### Prerequisites
+- Node.js (>= 16.0.0)
+- MongoDB (cloud or local instance)
+- Redis (for rate limiting and OTP storage)
+- Stripe account (for payment processing)
+- Cloudinary account (for image uploads)
