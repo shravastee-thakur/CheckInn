@@ -77,8 +77,9 @@ const RoomDetail = () => {
             },
           }
         );
+        console.log(res.data);
 
-        setIsAvailable(res.data.data.isAvailable);
+        setIsAvailable(res.data.availability.isAvailable);
       } catch (err) {
         setIsAvailable(false);
       } finally {

@@ -38,19 +38,22 @@ export const createBookingService = async (bookingData) => {
   return await bookingRepo.createBooking(bookingData);
 };
 
-export const getBookingByIdService = async (userId) => {
-  const booking = await bookingRepo.findBookingById(userId);
-  if (!booking) {
-    throw ApiError(404, "Booking not found");
-  }
-  return booking;
+export const getBookingsService = async (queryParams) => {
+  return await bookingRepo.findByQuery(queryParams);
 };
 
-export const getBookingByUserService = async (userId) => {
-  const booking = await bookingRepo.findBookingByUser(userId);
+export const getMyBookingService = async (userId) => {
+  const booking = await bookingRepo
+    .findBookingByUser(userId)
+    .select("roomId hotelId startDate endDate totalAmount status")
+    .populate("roomId", "type -_id")
+    .populate("hotelId", "name city -_id")
+    .sort({ createdAt: -1 });
+
   if (!booking) {
-    throw ApiError(404, "Booking not found");
+    throw ApiError(404, "Bookings not found");
   }
+
   return booking;
 };
 
@@ -67,4 +70,36 @@ export const cancelBookingService = async (bookingId) => {
   if (booking.status === "cancelled") throw ApiError(400, "Already cancelled");
 
   return await bookingRepo.updateStatus(bookingId, "cancelled");
+};
+
+export const deleteBookingService = async (bookingId) => {
+  const booking = await bookingRepo.findBookingById(bookingId);
+  if (!booking) {
+    throw ApiError(404, "Booking not found");
+  }
+
+  return await bookingRepo.removeBooking(bookingId);
+};
+
+export const paymentService = async (bookingId) => {
+  const booking = await bookingRepo
+    .findBookingById(bookingId)
+    .select("userId hotelId totalAmount startDate")
+    .populate("userId", "username email -_id")
+    .populate("hotelId", "name city -_id");
+
+  if (!booking) {
+    throw ApiError(404, "Booking not found");
+  }
+
+  const amountToCharge = booking.totalAmount;
+
+  const session = await bookingRepo.createCheckoutSession(
+    booking,
+    amountToCharge
+  );
+
+  await booking.updateOne({ status: "confirmed" });
+
+  return { booking, sessionUrl: session.url };
 };

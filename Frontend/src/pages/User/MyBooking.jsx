@@ -104,6 +104,8 @@ const MyBooking = () => {
           withCredentials: true,
         }
       );
+      console.log(res.data);
+
       if (res.data.success) {
         const checkoutUrl = res.data.url;
         window.location.href = checkoutUrl;

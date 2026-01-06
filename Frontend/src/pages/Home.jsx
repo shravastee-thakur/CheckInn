@@ -88,7 +88,7 @@ const HomePage = () => {
       {/* Hero Section */}
       <section className="relative h-[70vh] md:h-screen flex items-center justify-center overflow-hidden">
         <img
-          src="/Hotel.jpg"
+          src="/Hotel2.jpg"
           alt="Luxury Resort"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -194,7 +194,7 @@ const HomePage = () => {
                 <div className="flex items-end mb-1">
                   <button
                     type="submit"
-                    className="w-full bg-[#2f7003] hover:bg-[#255a02] text-white font-medium py-2 rounded transition-colors"
+                    className="w-full bg-[#41A67E] hover:bg-[#2f8965] text-white font-medium py-2 rounded transition-colors"
                   >
                     Search
                   </button>
@@ -227,11 +227,11 @@ const HomePage = () => {
                 loading="lazy"
               />
               {/* Overlay: City Name + Explore Button */}
-              <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-50 transition-opacity flex flex-col justify-end p-6">
+              <div className="absolute inset-0 bg-black bg-opacity-10 group-hover:bg-opacity-50 transition-opacity flex flex-col justify-end p-6">
                 <h3 className="text-xl font-bold text-white mb-2">
                   {city.name}
                 </h3>
-                <button className="inline-flex items-center px-4 py-2 text-yellow-400 font-semibold rounded-md shadow-sm hover:text-white hover:bg-[#69c72b] transition-colors">
+                <button className="inline-flex items-center px-4 py-2 text-yellow-400 font-semibold rounded-md shadow-sm hover:text-white hover:bg-[#41A67E] transition-colors">
                   Explore Hotels →
                 </button>
               </div>

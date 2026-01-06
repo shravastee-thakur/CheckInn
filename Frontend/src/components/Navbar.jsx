@@ -15,13 +15,14 @@ const Navbar = () => {
     if (success) {
       navigate("/");
       window.scrollTo(0, 0);
+      setIsMenuOpen(false)
     }
   };
 
   return (
     <>
       <div className="h-16">
-        <nav className="flex justify-between items-center text-sm font-semibold px-4 md:px-12 bg-[#2f7003] h-full">
+        <nav className="flex justify-between items-center text-sm font-semibold px-4 md:px-12 bg-[#41A67E] h-full">
           {/* Logo */}
           <div>
             <Link to={"/"}>
@@ -86,7 +87,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden bg-[#44a206] z-50 px-4 pb-4 pt-2 mt-16 flex flex-col gap-3 fixed top-0 right-0 w-1/2 h-1/2 transform transition-transform ${
+        className={`md:hidden bg-[#41A67E] z-50 px-4 pb-4 pt-2 mt-16 flex flex-col gap-3 fixed top-0 right-0 w-1/2 h-1/2 transform transition-transform ${
           isMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
         style={{ transitionDuration: "300ms" }}

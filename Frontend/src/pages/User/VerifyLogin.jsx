@@ -21,7 +21,7 @@ const VerifyLogin = () => {
     <div className="min-h-[calc(100vh-65px)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white shadow-xl rounded-lg overflow-hidden">
-          <div className="bg-[#43970b]  p-6 text-white">
+          <div className="bg-[#2f8965]  p-6 text-white">
             <h2 className="text-2xl font-bold text-center">Verify OTP</h2>
           </div>
 
@@ -56,7 +56,7 @@ const VerifyLogin = () => {
               disabled={otp.length !== 6}
               className={`w-full font-bold py-2 px-4 rounded-md transition duration-300 ${
                 otp.length === 6
-                  ? "bg-[#43970b] hover:bg-[#337904] text-white"
+                  ? "bg-[#41A67E] hover:bg-[#2f8965] text-white"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >

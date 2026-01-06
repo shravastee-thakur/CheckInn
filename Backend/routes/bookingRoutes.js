@@ -1,35 +1,39 @@
 import express from "express";
 import * as bookingController from "../controllers/BookingController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import { allowRole } from "../middleware/roleMidleware.js";
 
 const router = express.Router();
 
-// Create a new booking
 router.post(
   "/createBooking",
   authenticate,
   bookingController.createBookingController
 );
-
-// Get booking by ID
+router.get("/getMyBookings", authenticate, bookingController.getMyBookings);
 router.get(
-  "/getBookingById/:bookingId",
-  authenticate,
-  bookingController.getBookingByIdController
+  "/checkRoomAvailability/:roomId",
+  bookingController.checkRoomAvailability
 );
-
-// Get bookings by user
-router.get(
-  "/getBookingsByUser/:userId",
-  authenticate,
-  bookingController.getBookingByUserscontroller
-);
-
-// Cancel a booking
 router.put(
   "/cancelBooking/:bookingId",
   authenticate,
   bookingController.cancelBookingcontroller
+);
+router.post("/payment", authenticate, bookingController.stripePayment);
+
+//admin
+router.get(
+  "/getAllBookings",
+  authenticate,
+  allowRole("admin"),
+  bookingController.getAllBookings
+);
+router.delete(
+  "/deleteBooking/:bookingId",
+  authenticate,
+  allowRole("admin"),
+  bookingController.deleteBooking
 );
 
 export default router;

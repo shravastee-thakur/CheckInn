@@ -12,7 +12,7 @@ const CityHotelsPage = () => {
 
   const CITY_MAPPING = {
     Mumbai: "Mumbai",
-    Delhi: "New Delhi",
+    Delhi: "Delhi",
     Hyderabad: "Hyderabad",
     Bangalore: "Bangalore",
   };

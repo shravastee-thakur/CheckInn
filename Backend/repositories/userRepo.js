@@ -1,6 +1,7 @@
 import User from "../models/UserModel.js";
 
-export const findByEmail = (email) => User.findOne({ email }).select("+password")
+export const findByEmail = (email) =>
+  User.findOne({ email }).select("+password");
 
 export const findById = (id) => User.findById(id);
 

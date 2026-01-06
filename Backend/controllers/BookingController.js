@@ -1,5 +1,23 @@
 import * as bookingService from "../services/bookingService.js";
 import logger from "../utils/logger.js";
+import sendMail from "../config/sendMail.js";
+
+export const checkRoomAvailability = async (req, res, next) => {
+  try {
+    const { roomId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    const availability = await bookingService.checkAvailability(
+      roomId,
+      startDate,
+      endDate
+    );
+
+    res.status(200).json({ success: true, availability });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const createBookingController = async (req, res, next) => {
   try {
@@ -21,48 +39,34 @@ export const createBookingController = async (req, res, next) => {
   }
 };
 
-export const getBookingByUserscontroller = async (req, res, next) => {
-  const { userId } = req.params;
+export const getAllBookings = async (req, res, next) => {
   try {
-    const bookings = await bookingService.getBookingByUserService(userId);
+    const filters = req.query;
+
+    const bookings = await bookingService.getBookingsService(filters);
+
     return res.status(200).json({
       success: true,
       bookings,
     });
   } catch (error) {
-    logger.error(`Get booking by user error: ${error.message}`);
+    logger.error(`Error in get all bookings: ${error.message}`);
     next(error);
   }
 };
 
-export const checkRoomAvailability = async (req, res, next) => {
+export const getMyBookings = async (req, res, next) => {
   try {
-    const { roomId } = req.params;
-    const { startDate, endDate } = req.query;
+    const userId = req.user.id;
 
-    const availability = await bookingService.checkAvailability(
-      roomId,
-      startDate,
-      endDate
-    );
-
-    res.status(200).json({ success: true, availability });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getBookingByIdController = async (req, res, next) => {
-  const { bookingId } = req.params;
-  try {
-    const booking = await bookingService.getBookingByIdService(bookingId);
+    const bookings = await bookingService.getMyBookingService(userId);
 
     return res.status(200).json({
       success: true,
-      booking,
+      bookings,
     });
   } catch (error) {
-    logger.error(`Get booking by id error: ${error.message}`);
+    logger.error(`Error in get my booking: ${error.message}`);
     next(error);
   }
 };
@@ -77,6 +81,55 @@ export const cancelBookingcontroller = async (req, res, next) => {
     });
   } catch (error) {
     logger.error(`Cancel booking error: ${error.message}`);
+    next(error);
+  }
+};
+
+export const deleteBooking = async (req, res, next) => {
+  try {
+    const { bookingId } = req.params;
+
+    await bookingService.deleteBookingService(bookingId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Booking deleted successfully",
+    });
+  } catch (error) {
+    logger.error(`Error in delete booking: ${error.message}`);
+    next(error);
+  }
+};
+
+export const stripePayment = async (req, res, next) => {
+  try {
+    const { bookingId } = req.body;
+
+    const { booking, sessionUrl } = await bookingService.paymentService(
+      bookingId
+    );
+
+    const htmlContent = `
+            <h2>Booking Details</h2>
+            <p>Dear ${booking.userId.username},</p>
+            <p>Thankyou for availing our service.</p>
+            <ul>
+              <li><strong>Booking ID: </strong>${bookingId}</li>
+              <li><strong>Hotel Name: </strong>${booking.hotelId.name}</li>
+              <li><strong>Location: </strong>${booking.hotelId.city}</li>
+              <li><strong>Date: </strong>${booking.startDate.toLocaleDateString(
+                "en-GB"
+              )}</li>
+              <li><strong>Total Amount: </strong>₹ ${booking.totalAmount.toLocaleString()}</li>
+            </ul>
+            <p>We look forward to welcome you.</p>
+          `;
+
+    await sendMail(booking.userId.email, "Hotel Booking Details", htmlContent);
+
+    res.json({ success: true, url: sessionUrl });
+  } catch (error) {
+    logger.error(`Error in stripe payment: ${error.message}`);
     next(error);
   }
 };

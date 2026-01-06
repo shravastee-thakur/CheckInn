@@ -197,7 +197,7 @@ const AdminHotels = () => {
               <div className="flex justify-end space-x-2 mt-3">
                 <button
                   onClick={() => openEditModal(hotel)}
-                  className="px-3 py-1 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600"
+                  className="px-3 py-1 bg-[#41A67E] text-white text-sm rounded hover:bg-[#2f8965]"
                 >
                   Edit
                 </button>
