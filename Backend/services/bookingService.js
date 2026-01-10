@@ -1,41 +1,76 @@
 import * as bookingRepo from "../repositories/bookingRepo.js";
-import * as hotelRepo from "../repositories/hotelRepo.js";
 import * as roomRepo from "../repositories/roomRepo.js";
 import { ApiError } from "../utils/ApiError.js";
+import { redis } from "../config/redis.js";
+import mongoose from "mongoose";
 
 export const checkAvailability = async (roomId, startDate, endDate) => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const room = await roomRepo.findRoomById(roomId);
+  if (!room) throw ApiError(404, "Room not found");
 
-  if (start >= end) {
-    throw ApiError(400, "Check-out date must be after check-in date");
-  }
-
-  const overLaps = await bookingRepo.findOverlapping(
+  const bookedCount = await bookingRepo.findOverlapping(
     roomId,
     startDate,
     endDate
   );
 
+  const availableRooms = room.quantity - bookedCount;
+
   return {
-    isAvailable: overLaps.length === 0,
-    conflictingBookings: overLaps,
+    isAvailable: availableRooms > 0,
+    remainingQuantity: availableRooms > 0 ? availableRooms : 0,
   };
 };
 
 export const createBookingService = async (bookingData) => {
-  const { userId, roomId, hotelId, startDate, endDate, totalAmount } =
-    bookingData;
+  const { roomId, startDate, endDate, idempotencyKey } = bookingData;
 
-  const room = await roomRepo.findRoomById(roomId);
-  const hotel = await hotelRepo.findHotelById(hotelId);
-  if (!room || !hotel) throw ApiError(404, "Room or Hotel not found");
+  // 1. REDIS LOCK: Prevent two users from checking availability for the same room simultaneously
+  const lockKey = `lock:room:${roomId}`;
+  const acquired = await redis.set(lockKey, "locked", "NX", "EX", 10);
 
-  const { isAvailable } = await checkAvailability(roomId, startDate, endDate);
-  if (!isAvailable) {
-    throw ApiError(400, "Room is already booked for the selected dates.");
+  if (!acquired) {
+    throw ApiError(
+      429,
+      "This room is currently being processed. Please try again in a few seconds."
+    );
   }
-  return await bookingRepo.createBooking(bookingData);
+
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    // 2. CHECK INVENTORY
+    const room = await roomRepo.findRoomById(roomId);
+    if (!room) throw ApiError(404, "Room not found");
+
+    const activeBookingsCount = await bookingRepo.findOverlapping(
+      roomId,
+      startDate,
+      endDate
+    );
+
+    if (activeBookingsCount >= room.quantity) {
+      throw ApiError(
+        400,
+        `No ${room.type} rooms available for the selected dates.`
+      );
+    }
+
+    const booking = await bookingRepo.createBooking([bookingData], { session });
+
+    await session.commitTransaction();
+    return booking[0];
+  } catch (error) {
+    await session.abortTransaction();
+    if (error.code === 11000) {
+      throw ApiError(409, "This booking request has already been processed.");
+    }
+    throw error;
+  } finally {
+    session.endSession();
+    await redis.del(lockKey);
+  }
 };
 
 export const getBookingsService = async (queryParams) => {

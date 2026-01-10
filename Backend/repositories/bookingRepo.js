@@ -21,8 +21,8 @@ export const findByQuery = (query) =>
 export const updateStatus = (id, status) =>
   Booking.findByIdAndUpdate(id, { status }, { new: true });
 
-export const findOverlapping = (roomId, startDate, endDate) => {
-  return Booking.find({
+export const findOverlapping = async (roomId, startDate, endDate) => {
+  return await Booking.countDocuments({
     roomId,
     status: { $in: ["pending", "confirmed"] },
     $or: [

@@ -31,6 +31,7 @@ const RoomDetail = () => {
   });
   const [guests, setGuests] = useState(initialGuests);
   const [isAvailable, setIsAvailable] = useState(null);
+  const [remainingRooms, setRemainingRooms] = useState(null);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
 
@@ -80,6 +81,7 @@ const RoomDetail = () => {
         console.log(res.data);
 
         setIsAvailable(res.data.availability.isAvailable);
+        setRemainingRooms(res.data.availability.remainingQuantity);
       } catch (err) {
         setIsAvailable(false);
       } finally {
@@ -197,6 +199,12 @@ const RoomDetail = () => {
               <span className="font-bold">
                 ₹ {totalAmount.toLocaleString()}
               </span>
+            </div>
+          )}
+
+          {isAvailable && (
+            <div className="pt-2 text-red-600">
+              <span className="mr-2">Rooms available: {remainingRooms}</span>
             </div>
           )}
 

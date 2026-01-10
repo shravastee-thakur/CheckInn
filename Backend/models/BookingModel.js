@@ -34,11 +34,19 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    idempotencyKey: {
+      type: String,
+      required: true,
+      unique: true, // Critical for preventing duplicates
+    },
   },
   { timestamps: true }
 );
 bookingSchema.index({ roomId: 1, startDate: 1, endDate: 1, status: 1 });
-bookingSchema.index({ userId: 1, createdAt: -1 });
+bookingSchema.index(
+  { userId: 1, createdAt: -1 },
+  { expireAfterSeconds: 900, partialFilterExpression: { status: "pending" } }
+);
 
 const Booking = mongoose.model("Booking", bookingSchema);
 export default Booking;

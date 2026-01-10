@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
+import "./workers/mailWorker.js";
 
 import app from "./app.js";
 import connectDB from "./config/connectDb.js";

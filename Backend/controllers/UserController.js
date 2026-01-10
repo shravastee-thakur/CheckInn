@@ -2,8 +2,8 @@ import * as userService from "../services/userService.js";
 import * as userRepo from "../repositories/userRepo.js";
 import { ApiError } from "../utils/ApiError.js";
 import logger from "../utils/logger.js";
-import sendMail from "../config/sendMail.js";
 import { sendAuthResponse } from "../helpers/sendAuthResponse.js";
+import { mailQueue } from "../config/redis.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -47,7 +47,18 @@ export const loginStepOne = async (req, res, next) => {
         <p>This OTP will expire in 5 minutes.</p>
       `;
 
-    await sendMail(email, "Your 2FA Login OTP", htmlContent);
+    await mailQueue.add(
+      "sendOtpEmail",
+      {
+        email,
+        subject: "Your 2FA Login OTP",
+        htmlContent,
+      },
+      {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 2000 }, // Wait 2s, then 4s, then 8s
+      }
+    );
 
     logger.info(`OTP sent to ${email}`);
     return res.json({
@@ -122,7 +133,11 @@ export const forgetPassword = async (req, res, next) => {
         <p>This link will expire in 5 minutes.</p>
       `;
 
-    await sendMail(email, "Password Reset Request", htmlContent);
+    await mailQueue.add(
+      "sendResetEmail",
+      { email, subject: "Password Reset Request", htmlContent },
+      { attempts: 3, backoff: { type: "exponential", delay: 2000 } }
+    );
 
     logger.info(`Password reset link sent to ${email}`);
 

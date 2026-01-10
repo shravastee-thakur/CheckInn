@@ -22,6 +22,7 @@ const AdminRooms = () => {
     description: "",
     price: "",
     maxPeople: "",
+    quantity: "",
   });
   const [image, setImage] = useState([]);
 
@@ -46,6 +47,7 @@ const AdminRooms = () => {
       description: room.description,
       price: room.price.toString(),
       maxPeople: room.maxPeople.toString(),
+      quantity: room.quantity?.toString() || "",
     });
     setImage(null);
     setIsModalOpen(true);
@@ -99,6 +101,7 @@ const AdminRooms = () => {
     data.append("description", formData.description);
     data.append("price", formData.price);
     data.append("maxPeople", formData.maxPeople);
+    data.append("quantity", formData.quantity);
 
     if (image) {
       data.append("image", image);
@@ -143,6 +146,7 @@ const AdminRooms = () => {
         description: "",
         price: "",
         maxPeople: "",
+        quantity: "",
       });
       setImage(null);
       setIsModalOpen(false);
@@ -273,6 +277,16 @@ const AdminRooms = () => {
                     name="maxPeople"
                     placeholder="Max Occupancy (e.g., 2, 4)"
                     value={formData.maxPeople}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    min="1"
+                    required
+                  />
+                  <input
+                    type="number"
+                    name="quantity"
+                    placeholder="Number of rooms available (e.g., 5)"
+                    value={formData.quantity}
                     onChange={handleInputChange}
                     className="w-full p-2 border border-gray-300 rounded"
                     min="1"
