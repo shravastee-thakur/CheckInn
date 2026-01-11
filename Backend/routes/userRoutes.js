@@ -9,6 +9,7 @@ import { authenticate } from "../middleware/authMiddleware.js";
 import { sanitizeMiddleware } from "../middleware/sanitize.js";
 import { validate } from "../middleware/validate.js";
 import { rateLimiterMiddleware } from "../middleware/rateLimiter.js";
+import { securityMiddleware } from "../middleware/securityMiddleware.js";
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.post(
 );
 router.post(
   "/loginStepOne",
+  securityMiddleware,
   sanitizeMiddleware,
   validate(loginSchema),
   rateLimiterMiddleware(5, 60),
@@ -27,6 +29,7 @@ router.post(
 );
 router.post(
   "/verifyLogin",
+  securityMiddleware,
   sanitizeMiddleware,
   validate(otpValidationSchema),
   userController.verifyOtp

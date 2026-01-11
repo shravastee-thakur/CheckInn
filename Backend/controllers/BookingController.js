@@ -1,6 +1,7 @@
 import * as bookingService from "../services/bookingService.js";
 import logger from "../utils/logger.js";
 import sendMail from "../config/sendMail.js";
+import { mailQueue } from "../config/redis.js";
 
 export const checkRoomAvailability = async (req, res, next) => {
   try {
@@ -26,7 +27,7 @@ export const createBookingController = async (req, res, next) => {
       userId: req.user.id,
     };
 
-    const booking = await bookingService.createBookingService(bookingData);
+    const { booking } = await bookingService.createBookingService(bookingData);
 
     return res.status(201).json({
       success: true,
@@ -73,8 +74,14 @@ export const getMyBookings = async (req, res, next) => {
 
 export const cancelBookingcontroller = async (req, res, next) => {
   const { bookingId } = req.params;
+  const userId = req.user.id;
+  const userRole = req.user.role;
   try {
-    const booking = await bookingService.cancelBookingService(bookingId);
+    const booking = await bookingService.cancelBookingService(
+      bookingId,
+      userId,
+      userRole
+    );
     return res.status(200).json({
       success: true,
       message: "Booking cancelled successfully",
@@ -125,7 +132,15 @@ export const stripePayment = async (req, res, next) => {
             <p>We look forward to welcome you.</p>
           `;
 
-    await sendMail(booking.userId.email, "Hotel Booking Details", htmlContent);
+    await mailQueue.add(
+      "sendBookingDetails",
+      {
+        to: booking.userId.email,
+        subject: "Hotel Booking Details",
+        htmlContent,
+      },
+      { attempts: 3, backoff: { type: "exponential", delay: 2000 } }
+    );
 
     res.json({ success: true, url: sessionUrl });
   } catch (error) {

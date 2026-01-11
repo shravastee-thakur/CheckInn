@@ -33,7 +33,7 @@ app.use("/api/v1/rooms", roomRoutes);
 // http://localhost:3000/api/v1/room/createRoom
 
 app.use("/api/v1/bookings", bookingRoutes);
-// http://localhost:3000/api/v1/booking/createBooking
+// http://localhost:3000/api/v1/bookings/createBooking
 
 app.use(errorHandler);
 export default app;

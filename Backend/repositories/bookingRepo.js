@@ -5,7 +5,8 @@ dotenv.config();
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-export const createBooking = (data) => Booking.create(data);
+export const createBooking = (data, options = {}) =>
+  Booking.create(data, options);
 
 export const findBookingByUser = (userId) => Booking.find({ userId });
 
@@ -22,6 +23,12 @@ export const updateStatus = (id, status) =>
   Booking.findByIdAndUpdate(id, { status }, { new: true });
 
 export const findOverlapping = async (roomId, startDate, endDate) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    throw ApiError(400, "Invalid date format");
+  }
+
   return await Booking.countDocuments({
     roomId,
     status: { $in: ["pending", "confirmed"] },

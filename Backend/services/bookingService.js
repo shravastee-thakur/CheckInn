@@ -23,7 +23,7 @@ export const checkAvailability = async (roomId, startDate, endDate) => {
 };
 
 export const createBookingService = async (bookingData) => {
-  const { roomId, startDate, endDate, idempotencyKey } = bookingData;
+  const { roomId, startDate, endDate } = bookingData;
 
   // 1. REDIS LOCK: Prevent two users from checking availability for the same room simultaneously
   const lockKey = `lock:room:${roomId}`;
@@ -60,7 +60,7 @@ export const createBookingService = async (bookingData) => {
     const booking = await bookingRepo.createBooking([bookingData], { session });
 
     await session.commitTransaction();
-    return booking[0];
+    return { booking: booking[0] };
   } catch (error) {
     await session.abortTransaction();
     if (error.code === 11000) {
