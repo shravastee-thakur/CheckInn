@@ -1,4 +1,4 @@
-import aj from "../utils/arcjet.js";
+import aj from "../utils/arcject.js";
 import logger from "../utils/logger.js";
 
 export const securityMiddleware = async (req, res, next) => {
