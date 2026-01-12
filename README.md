@@ -6,58 +6,62 @@
 
 # CheckInn (Version 2.0)
 
-## Hotel Booking System (SRP Structure)
+## A Learning Journey in Hotel Booking Logic & Backend Architecture
 ### Overview
 
-CheckInn is a high-concurrency Hotel Booking System built using the MERN stack. Unlike standard clones, this project is engineered with a Single Responsibility Principle (SRP) architecture and focuses on distributed systems problems like race conditions, idempotency, and background task processing.
+CheckInn is a hotel booking project built to explore the complexities of the MERN stack. I used this version to push myself out of my comfort zone by moving away from simple CRUD operations and experimenting with concepts like Single Responsibility Principle, distributed locking, concurrency, and background task processing.
 
-## Key Evolutionary Features (V2.0)
-**While Version 1.0 established the SRP foundation, Version 2.0 introduces professional-grade infrastructure:**
-- **Inventory-Based Booking**: Shifted from "per-room" booking to an "Inventory Approach." The system tracks room quantities (e.g., 5 Deluxe Rooms) and manages availability dynamically.
+## Key Learning Objectives & Features
 
-- **Distributed Locking (Redis NX)**: Prevents overbooking by using ioredis to implement a "Not Exists" (NX) locking mechanism. This ensures that only one request can process a specific room type at a time during high-traffic bursts.
+In Version 2.0, I transitioned from a basic "per-room" model to a more scalable Inventory-Based Approach (managing quantities like "5 Deluxe Rooms"). This change allowed me to explore several backend challenges:
 
-- **Atomic Transactions (ACID)**: Uses MongoDB Sessions to ensure that "Booking Creation" and "Inventory Updates" happen as an atomic unit. If one fails, the entire process rolls back (Atomic Cleanup).
+- **Concurrency Management (Redis NX):** To learn how to prevent overbooking, I implemented a simple distributed lock using ioredis. This ensures that during high-traffic moments, the system processes inventory checks sequentially rather than all at once.
 
-- **Background Workers (BullMQ)**: Decoupled heavy tasks like OTP delivery and email notifications using BullMQ. This ensures the main API thread remains responsive.
+- **Data Integrity (MongoDB Transactions):** I practiced using ACID transactions to ensure that "Booking Creation" and "Inventory Updates" stay in sync. If the booking fails, the inventory update rolls back automatically.
 
-- **API Idempotency**: Implemented Idempotency-Key headers for payment and booking requests to prevent duplicate charges caused by network retries or user double-clicks.
+- **Asynchronous Tasks (BullMQ):** I wanted to understand how to keep an API responsive. I offloaded time-consuming tasks like OTP generation and email notifications to background workers using BullMQ and Redis.
 
-- **The "Pending Room" Reaper**: A MongoDB Partial TTL Index that automatically expires pending bookings after 15 minutes, restoring inventory if the user fails to complete the payment.
+- **Automated Cleanup (TTL Indexes):** To handle abandoned bookings, I used MongoDB Partial TTL Indexes. This "Reaper" logic automatically expires pending bookings after 15 minutes to release the rooms back into the inventory.
+
+- **Security & Bot Protection:** Beyond standard JWT, I integrated ArcJet to experiment with Shield and Bot protection, helping me understand how to defend against automated scrapers.
 
 ### Tech Stack
 **Backend Infrastructure**
 - Runtime: Node.js & Express.js
 - Architecture: Single Responsibility Principle (SRP) / Repository-Service-Controller Pattern
 - Database: MongoDB (with ACID Transactions & TTL Indexes)
-- In-Memory Store: Redis (via Upstash/Local IORedis)
-- Message Broker: BullMQ (Redis-backed)
+- In-Memory Store: Redis (via Upstash)
+- Message Broker: BullMQ (IORedis-backed)
 
 **Security & Payments**
 - Payments: Stripe API (with Webhook integration)
 - Auth: JWT (Access/Refresh Token Rotation), 2FA with Redis-stored OTPs, bcrypt hashing.
 - Validation: Joi (Schema-based validation)
-- Protection: Rate Limiting (Redis), Helmet.js, Mongo-sanitize.
+- Protection: Rate Limiting (Redis), ArcJet (BOT and Shield), Helmet.js, Mongo-sanitize.
 
 **Media & Services**
 - Image Storage: Cloudinary (via Multer)
 - Logging: Winston (Structured logs for debugging)
 - Email: Brevo/Nodemailer
 
-### Architecture & Design Patterns
-**Single Responsibility Principle (SRP)**
+### Architecture & Pattern Exploration
+**Single Responsibility Principle (SRP)** The most significant part of my learning was refactoring the code so that each module has one clear purpose. This makes the project much easier to debug and test:
 
-The codebase is strictly organized to ensure each module has one reason to change:
+- Controllers: Handle request parsing and responses.
 
-- Controllers: Handle HTTP parsing and response formatting.
-- Services: Contain the "Business Logic" (e.g., checking availability, calculating prices).
-- Repositories: Pure data access layer (Mongoose queries).
-- Workers: Handle asynchronous background processing.
+- Services: Where the "heavy lifting" and business logic live.
+
+- Repositories: Dedicated solely to data access and Mongoose queries.
+
+- Workers: Handle the background jobs.
 
 **Concurrency Flow**
 Request: 
-1. User attempts to book.
-2. Lock: Redis SET NX locks the room type for 10 seconds.
-3. Validate: Service checks inventory count vs. active bookings.
-4. Execute: Mongoose Transaction creates a pending booking.
-5. Unlock: Redis key is deleted; next user in queue is processed.
+1. Request: User attempts a booking.
+2. Lock: A Redis SET NX lock is placed on the room type.
+3. Validate: The Service checks if rooms are actually available.
+4. Execute: A Mongoose Transaction creates the booking and updates inventory.
+5. Unlock: The Redis key is cleared for the next request.
+
+### Why I built this
+As a self-taught developer, I wanted to understand the "Why" behind system design choices. Building CheckInn helped me bridge the gap between "making it work" and "making it reliable." It isn't a perfect system, but it represents a significant step in my understanding of how distributed components interact in a modern backend.
