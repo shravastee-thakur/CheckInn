@@ -1,34 +1,39 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import CheckIcon from "@mui/icons-material/Check";
+import { useEffect, useContext, useRef } from "react";
+import { useNavigate, useSearchParams, useParams } from "react-router-dom";
+import { PaymentContext } from "../../context/PaymentProvider";
+import { AuthContext } from "../../context/AuthProvider";
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { bookingId } = useParams();
+  const { verifyPayment } = useContext(PaymentContext);
+  const { accessToken } = useContext(AuthContext);
+
+  const sessionId = searchParams.get("session_id");
+
+  const called = useRef(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate("/my-bookings");
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [navigate]);
+    if (sessionId && bookingId && accessToken && !called.current) {
+      called.current = true;
+
+      const runVerification = async () => {
+        const success = await verifyPayment(sessionId, bookingId, accessToken);
+        if (success) {
+          setTimeout(() => navigate("/my-bookings"), 5000);
+        }
+      };
+
+      runVerification();
+    }
+  }, [sessionId, bookingId, verifyPayment, navigate, accessToken]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-md p-8 text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckIcon />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          Payment Successful!
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Thank you for your booking. Your payment has been processed
-          successfully.
-        </p>
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-green-800 text-sm">
-          A confirmation email has been sent to your inbox.
-        </div>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center text-center">
+      <h1 className="text-2xl font-bold mb-4">Payment Successful!</h1>
+      <p>Please wait while we process your booking...</p>
+      <div className="mt-4 animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
     </div>
   );
 };

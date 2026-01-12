@@ -9,10 +9,12 @@ import Paper from "@mui/material/Paper";
 import { useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { AuthContext } from "../../context/AuthProvider";
+import { PaymentContext } from "../../context/PaymentProvider";
 
 const MyBooking = () => {
   const [myBooking, setMyBooking] = useState([]);
   const { accessToken, verified, authLoading } = useContext(AuthContext);
+  const { stripePayment } = useContext(PaymentContext);
 
   useEffect(() => {
     if (authLoading) return;
@@ -93,33 +95,7 @@ const MyBooking = () => {
   };
 
   const handlePay = async (bookingId) => {
-    try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/bookings/payment`,
-        { bookingId },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          withCredentials: true,
-        }
-      );
-      console.log(res.data);
-
-      if (res.data.success) {
-        const checkoutUrl = res.data.url;
-        window.location.href = checkoutUrl;
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to pay", {
-        style: {
-          borderRadius: "10px",
-          background: "#FFB5B5",
-          color: "#333",
-        },
-      });
-    }
+    const success = await stripePayment(bookingId);
   };
 
   return (
@@ -205,9 +181,13 @@ const MyBooking = () => {
                       </TableCell>
                       <TableCell align="center">
                         <button
-                          disabled={booking.status === "confirmed"}
+                          disabled={
+                            booking.status === "confirmed" ||
+                            booking.status === "cancelled"
+                          }
                           onClick={() => handlePay(booking._id)}
                           className={`px-3 py-1 rounded text-white ${
+                            booking.status === "cancelled" ||
                             booking.status === "confirmed"
                               ? "bg-gray-500 cursor-not-allowed"
                               : "bg-green-600"

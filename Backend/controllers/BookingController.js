@@ -111,17 +111,32 @@ export const deleteBooking = async (req, res, next) => {
 export const stripePayment = async (req, res, next) => {
   try {
     const { bookingId } = req.body;
+    const userId = req.user.id;
 
-    const { booking, sessionUrl } = await bookingService.paymentService(
-      bookingId
+    const { sessionUrl } = await bookingService.paymentService(
+      bookingId,
+      userId
     );
+
+    res.json({ success: true, url: sessionUrl });
+  } catch (error) {
+    logger.error(`Error in stripe payment: ${error.message}`);
+    next(error);
+  }
+};
+
+export const verifyPayment = async (req, res, next) => {
+  try {
+    const { sessionId } = req.body;
+
+    const booking = await bookingService.verifyPaymentService(sessionId);
 
     const htmlContent = `
             <h2>Booking Details</h2>
             <p>Dear ${booking.userId.username},</p>
             <p>Thankyou for availing our service.</p>
             <ul>
-              <li><strong>Booking ID: </strong>${bookingId}</li>
+              <li><strong>Booking ID: </strong>${booking._id}</li>
               <li><strong>Hotel Name: </strong>${booking.hotelId.name}</li>
               <li><strong>Location: </strong>${booking.hotelId.city}</li>
               <li><strong>Date: </strong>${booking.startDate.toLocaleDateString(
@@ -142,9 +157,12 @@ export const stripePayment = async (req, res, next) => {
       { attempts: 3, backoff: { type: "exponential", delay: 2000 } }
     );
 
-    res.json({ success: true, url: sessionUrl });
+    res.status(200).json({
+      success: true,
+      message: "Payment Successful",
+    });
   } catch (error) {
-    logger.error(`Error in stripe payment: ${error.message}`);
+    logger.error(`Error in verify payment: ${error.message}`);
     next(error);
   }
 };

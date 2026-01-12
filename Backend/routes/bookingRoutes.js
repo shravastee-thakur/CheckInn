@@ -21,6 +21,7 @@ router.put(
   bookingController.cancelBookingcontroller
 );
 router.post("/payment", authenticate, bookingController.stripePayment);
+router.post("/verifyPayment", authenticate, bookingController.verifyPayment);
 
 //admin
 router.get(

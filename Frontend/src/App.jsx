@@ -93,7 +93,10 @@ const App = () => {
           <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* payment */}
-          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route
+            path="/payment-success/:bookingId"
+            element={<PaymentSuccess />}
+          />
           <Route path="/payment-failure" element={<PaymentFailure />} />
 
           <Route path="*" element={<NotFoundPage />} />

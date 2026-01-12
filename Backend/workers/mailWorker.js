@@ -6,8 +6,11 @@ import logger from "../utils/logger.js";
 const mailWorker = new Worker(
   "mailQueue", // Must match the name in your Queue setup
   async (job) => {
-    const { email, subject, htmlContent } = job.data;
-    await sendMail(email, subject, htmlContent);
+    const { to, subject, htmlContent } = job.data;
+    if (!to) {
+      throw new Error("No recipient email address provided in job data");
+    }
+    await sendMail(to, subject, htmlContent);
   },
   { connection: redis, concurrency: 5 }
 );

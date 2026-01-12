@@ -4,6 +4,12 @@ import { ApiError } from "../utils/ApiError.js";
 import { redis } from "../config/redis.js";
 import mongoose from "mongoose";
 
+import { Stripe } from "stripe";
+import dotenv from "dotenv";
+dotenv.config();
+
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+
 export const checkAvailability = async (roomId, startDate, endDate) => {
   const room = await roomRepo.findRoomById(roomId);
   if (!room) throw ApiError(404, "Room not found");
@@ -92,7 +98,7 @@ export const getMyBookingService = async (userId) => {
   return booking;
 };
 
-export const cancelBookingService = async (bookingId) => {
+export const cancelBookingService = async (bookingId, userId, userRole) => {
   const booking = await bookingRepo.findBookingById(bookingId);
   if (!booking) {
     throw ApiError(404, "Booking not found");
@@ -116,12 +122,10 @@ export const deleteBookingService = async (bookingId) => {
   return await bookingRepo.removeBooking(bookingId);
 };
 
-export const paymentService = async (bookingId) => {
+export const paymentService = async (bookingId, userId) => {
   const booking = await bookingRepo
     .findBookingById(bookingId)
-    .select("userId hotelId totalAmount startDate")
-    .populate("userId", "username email -_id")
-    .populate("hotelId", "name city -_id");
+    .populate("hotelId");
 
   if (!booking) {
     throw ApiError(404, "Booking not found");
@@ -134,7 +138,41 @@ export const paymentService = async (bookingId) => {
     amountToCharge
   );
 
-  await booking.updateOne({ status: "confirmed" });
+  await bookingRepo.createPayment({
+    user: userId,
+    booking: bookingId,
+    stripeSessionId: session.id,
+    amount: amountToCharge,
+    status: "pending",
+  });
 
   return { booking, sessionUrl: session.url };
+};
+
+export const verifyPaymentService = async (sessionId) => {
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (session.payment_status !== "paid") {
+    throw ApiError("Payment not verified");
+  }
+
+  const paymentRecord = await bookingRepo.findPayment({
+    stripeSessionId: sessionId,
+  });
+
+  if (!paymentRecord) throw ApiError("Payment record not found");
+
+  if (paymentRecord?.status !== "completed") {
+    paymentRecord.status = "completed";
+    await paymentRecord.save();
+  }
+
+  await bookingRepo.updateStatus(paymentRecord.booking, "confirmed");
+
+  const booking = await bookingRepo
+    .findBookingById(paymentRecord.booking)
+    .select("userId hotelId totalAmount startDate")
+    .populate("userId", "username email")
+    .populate("hotelId", "name city");
+
+  return booking;
 };

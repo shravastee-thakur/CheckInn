@@ -1,6 +1,7 @@
 import Booking from "../models/BookingModel.js";
 import { Stripe } from "stripe";
 import dotenv from "dotenv";
+import Payment from "../models/PaymentModel.js";
 dotenv.config();
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -78,9 +79,13 @@ export const createCheckoutSession = async (booking, amount) => {
       },
     ],
 
-    success_url: `${process.env.FRONTEND_URL}/payment-success`,
+    success_url: `${process.env.FRONTEND_URL}/payment-success/${booking._id}?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.FRONTEND_URL}/payment-failure`,
   });
 };
+
+export const createPayment = (paymentData) => Payment.create(paymentData);
+
+export const findPayment = (filter) => Payment.findOne(filter);
 
 export const removeBooking = (id) => Booking.findByIdAndDelete(id);
