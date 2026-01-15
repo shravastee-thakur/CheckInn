@@ -1,6 +1,6 @@
 import * as bookingService from "../services/bookingService.js";
 import logger from "../utils/logger.js";
-import sendMail from "../config/sendMail.js";
+
 import { mailQueue } from "../config/redis.js";
 
 export const checkRoomAvailability = async (req, res, next) => {

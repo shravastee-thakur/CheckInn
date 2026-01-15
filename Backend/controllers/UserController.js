@@ -50,7 +50,7 @@ export const loginStepOne = async (req, res, next) => {
     await mailQueue.add(
       "sendOtpEmail",
       {
-        email,
+        to: email,
         subject: "Your 2FA Login OTP",
         htmlContent,
       },
@@ -135,7 +135,7 @@ export const forgetPassword = async (req, res, next) => {
 
     await mailQueue.add(
       "sendResetEmail",
-      { email, subject: "Password Reset Request", htmlContent },
+      { to: email, subject: "Password Reset Request", htmlContent },
       { attempts: 3, backoff: { type: "exponential", delay: 2000 } }
     );
 
